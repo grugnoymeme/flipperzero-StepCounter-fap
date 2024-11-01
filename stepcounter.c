@@ -7,6 +7,7 @@
 #include <locale/locale.h>
 #include <notification/notification.h>
 #include <notification/notification_messages.h>
+#include <expansion/expansion.h>
 
 #define TAG_MEMSIC "memsic_2125_app"
 #define TAG_COUNTER "step_counter_app"
@@ -64,7 +65,10 @@ void step_callback(void* ctx) {
    }
 }
 
-static void input_callback(InputEvent* input_event, FuriMessageQueue* queue) {
+static void input_callback(InputEvent* input_event, void* ctx) {
+    furi_assert(ctx);
+    FuriMessageQueue* queue = ctx;
+
     StepCounterEvent event = {
         .type = StepCounterEventTypeKey,
         .input_event.key = input_event->key,
@@ -94,6 +98,9 @@ static void render_callback(Canvas* canvas, void* ctx) {
 
 int32_t step_counter_app(void* p) {
     UNUSED(p);
+
+    Expansion* expansion = furi_record_open(RECORD_EXPANSION);
+    expansion_disable(expansion);
 
     StepCounterContext* stepContext = malloc(sizeof(StepCounterContext));
     stepContext->data = malloc(sizeof(StepCounterData));
@@ -152,5 +159,8 @@ int32_t step_counter_app(void* p) {
     free(stepContext->data);
     free(stepContext);
 
+    expansion_enable(expansion);
+    furi_record_close(RECORD_EXPANSION);
+    
     return 0;
 }
